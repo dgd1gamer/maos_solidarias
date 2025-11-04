@@ -1,69 +1,153 @@
+import { useState } from "react";
 import { Button } from "@/components/primitives/button";
 import { InputFloat } from "@/components/primitives/input/input";
 import { Title } from "@/components/primitives/title";
 
 const Contato = () => {
+  const [formData, setFormData] = useState({
+    nome: "",
+    "e-mail": "",
+    celular: "",
+    assunto: "",
+    mensagem: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      const response = await fetch("/api/contato", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nome: formData.nome,
+          email: formData["e-mail"],
+          celular: formData.celular,
+          assunto: formData.assunto,
+          mensagem: formData.mensagem,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: "success", text: "Mensagem enviada com sucesso!" });
+        // Limpar formulário
+        setFormData({
+          nome: "",
+          "e-mail": "",
+          celular: "",
+          assunto: "",
+          mensagem: "",
+        });
+      } else {
+        setMessage({ type: "error", text: data.message || "Erro ao enviar mensagem." });
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: "Erro ao enviar mensagem. Tente novamente." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <main className="container-xl row row-cols-lg-2 mx-auto align-content-center my-5">
       <section className="order-lg-1">
         <Title marginTop="0">Envie sua mensagem!</Title>
 
-        <form id="contact" className="my-3">
-        <InputFloat
+        {message.text && (
+          <div
+            className={`alert ${
+              message.type === "success" ? "alert-success" : "alert-danger"
+            }`}
+            role="alert"
+          >
+            {message.text}
+          </div>
+        )}
+
+        <form id="contact" className="my-3" onSubmit={handleSubmit}>
+          <InputFloat
             type="text"
             id="nome"
             name="nome"
             placeholder=""
             information="Nome"
+            value={formData.nome}
+            onChange={handleChange}
+            required
           />
-        <InputFloat
-            type="text"
+          <InputFloat
+            type="email"
             id="e-mail"
             name="e-mail"
             placeholder=""
             information="E-mail"
+            value={formData["e-mail"]}
+            onChange={handleChange}
+            required
           />
-        <InputFloat
+          <InputFloat
             type="text"
             id="celular"
             name="celular"
             placeholder=""
             information="Celular"
+            value={formData.celular}
+            onChange={handleChange}
           />
-        <InputFloat
+          <InputFloat
             type="text"
             id="assunto"
             name="assunto"
             placeholder=""
             information="Assunto"
+            value={formData.assunto}
+            onChange={handleChange}
           />
-        
 
           <div className="form-floating input-float my-1">
             <textarea
               className="form-control"
-              placeholder="Sua mensagem aqui...">
-            </textarea>
+              id="mensagem"
+              name="mensagem"
+              placeholder="Sua mensagem aqui..."
+              value={formData.mensagem}
+              onChange={handleChange}
+              required
+            ></textarea>
 
-            <label className="label-float" htmlFor="message">
+            <label className="label-float" htmlFor="mensagem">
               Mensagem
             </label>
           </div>
+
+          <div style={{ marginTop: "2rem" }}>
+            <Button
+              type="submit"
+              customWidth
+              className="btn-primary btn-login fw-medium"
+              aria-label="Enviar"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Enviando..." : "Enviar"}
+            </Button>
+          </div>
         </form>
-
-        {/* Fim do componente */}
-        
-
-        <div style={{ marginTop: "2rem" }}>
-          <Button
-            type="submit"
-            customWidth
-            className="btn-primary btn-login fw-medium"
-            aria-label="Enviar"
-          >
-            Enviar
-          </Button>
-        </div>
       </section>
       <section className="order-lg-0">
         <div>
