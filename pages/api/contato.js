@@ -11,11 +11,11 @@ export default async function handler(req, res) {
     const { nome, email, celular, assunto, mensagem } = req.body;
 
     // Validação básica
-    if (!nome || !email || !mensagem) {
-      return res.status(400).json({ 
-        message: 'Por favor, preencha todos os campos obrigatórios.' 
-      });
-    }
+    //if (!nome || !email || !mensagem) {
+      //return res.status(400).json({ 
+       // message: 'Por favor, preencha todos os campos obrigatórios.' 
+      //});
+    //}
 
     const emailDestino = process.env.EMAIL_DESTINO || 'relacionamento@maossolidarias.org';
 
