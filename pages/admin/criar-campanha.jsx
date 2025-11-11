@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/router";
+import React, { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/primitives/button";
 import Image from "next/image";
@@ -8,47 +7,16 @@ import { InputFloat } from "@/components/primitives/input/input";
 import { supabase } from "@/lib/supabase";
 
 const CriarCampanha = () => {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
   const [formData, setFormData] = useState({
     titulo: "",
     descricao: "",
     categoria: "",
     meta: "",
-    dataInicio: "",
-    dataFim: "",
     localizacao: "",
     imagemUrl: "",
   });
-
-  useEffect(() => {
-    // Verificar autenticação e permissões de administrador
-    const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          router.push("/login");
-          return;
-        }
-
-        setIsAuthenticated(true);
-
-        // TODO: Verificar se o usuário é administrador
-        // Por enquanto, apenas verifica se está autenticado
-        // A lógica de verificação de admin será implementada depois
-        setIsAdmin(true);
-      } catch (error) {
-        console.error("Erro ao verificar autenticação:", error);
-        router.push("/login");
-      }
-    };
-
-    checkAuth();
-  }, [router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,51 +31,56 @@ const CriarCampanha = () => {
     setIsLoading(true);
     setMessage({ type: "", text: "" });
 
-    // TODO: Implementar lógica de criação da campanha no Supabase
-    // Por enquanto, apenas simula o envio
     try {
-      // Simulação de delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+      const { data, error } = await supabase
+        .from("campanhas")
+        .insert([
+          {
+            titulo: formData.titulo,
+            descricao: formData.descricao,
+            categoria: formData.categoria,
+            meta: parseFloat(formData.meta) || 0,
+            localizacao: formData.localizacao,
+            imagem_url: formData.imagemUrl || null,
+          },
+        ])
+        .select();
+
+      if (error) throw error;
+
       setMessage({
         type: "success",
-        text: "Campanha criada com sucesso! (Lógica de integração será implementada)",
+        text: "Campanha criada com sucesso!",
       });
-      
+
       // Limpar formulário
       setFormData({
         titulo: "",
         descricao: "",
         categoria: "",
         meta: "",
-        dataInicio: "",
-        dataFim: "",
         localizacao: "",
         imagemUrl: "",
       });
     } catch (error) {
+      console.error("Erro ao criar campanha:", error);
+      
+      let errorMessage = "Erro ao criar campanha. Tente novamente.";
+      
+      if (error.code === 'PGRST205') {
+        errorMessage = "Tabela não encontrada. Execute o SQL no Supabase";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setMessage({
         type: "error",
-        text: error.message || "Erro ao criar campanha. Tente novamente.",
+        text: errorMessage,
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (!isAuthenticated || !isAdmin) {
-    return (
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "center", 
-        alignItems: "center", 
-        height: "100vh",
-        flexDirection: "column"
-      }}>
-        <div>Verificando permissões...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="container-fluid" id="container-main">
@@ -140,30 +113,25 @@ const CriarCampanha = () => {
           )}
 
           <form onSubmit={handleSubmit} className="admin-form">
-            <div className="row">
-              <div className="col-md-6">
-                <InputFloat
-                  type="text"
-                  name="titulo"
-                  placeholder="Título da Campanha"
-                  information="Título da Campanha"
-                  value={formData.titulo}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="col-md-6">
-                <InputFloat
-                  type="text"
-                  name="categoria"
-                  placeholder="Categoria (ex: Enchentes, Incêndios, Secas)"
-                  information="Categoria"
-                  value={formData.categoria}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
+            <InputFloat
+              type="text"
+              name="titulo"
+              placeholder="Título da Campanha"
+              information="Título da Campanha"
+              value={formData.titulo}
+              onChange={handleChange}
+              required
+            />
+
+            <InputFloat
+              type="text"
+              name="categoria"
+              placeholder="Categoria"
+              information="Categoria"
+              value={formData.categoria}
+              onChange={handleChange}
+              required
+            />
 
             <div className="form-floating my-3">
               <textarea
@@ -179,65 +147,34 @@ const CriarCampanha = () => {
               <label htmlFor="descricao">Descrição da Campanha</label>
             </div>
 
-            <div className="row">
-              <div className="col-md-4">
-                <InputFloat
-                  type="number"
-                  name="meta"
-                  placeholder="Meta de Arrecadação"
-                  information="Meta de Arrecadação (R$)"
-                  value={formData.meta}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="col-md-4">
-                <InputFloat
-                  type="date"
-                  name="dataInicio"
-                  placeholder="Data de Início"
-                  information="Data de Início"
-                  value={formData.dataInicio}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="col-md-4">
-                <InputFloat
-                  type="date"
-                  name="dataFim"
-                  placeholder="Data de Término"
-                  information="Data de Término"
-                  value={formData.dataFim}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
+            <InputFloat
+              type="number"
+              name="meta"
+              placeholder="Meta de Arrecadação (R$)"
+              information="Meta de Arrecadação (R$)"
+              value={formData.meta}
+              onChange={handleChange}
+              required
+            />
 
-            <div className="row">
-              <div className="col-md-6">
-                <InputFloat
-                  type="text"
-                  name="localizacao"
-                  placeholder="Localização (Cidade, Estado)"
-                  information="Localização"
-                  value={formData.localizacao}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="col-md-6">
-                <InputFloat
-                  type="url"
-                  name="imagemUrl"
-                  placeholder="URL da Imagem"
-                  information="URL da Imagem"
-                  value={formData.imagemUrl}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
+            <InputFloat
+              type="text"
+              name="localizacao"
+              placeholder="Localização"
+              information="Localização"
+              value={formData.localizacao}
+              onChange={handleChange}
+              required
+            />
+
+            <InputFloat
+              type="url"
+              name="imagemUrl"
+              placeholder="URL da Imagem"
+              information="URL da Imagem (opcional)"
+              value={formData.imagemUrl}
+              onChange={handleChange}
+            />
 
             <div className="admin-actions">
               <Button
