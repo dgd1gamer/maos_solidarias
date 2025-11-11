@@ -1,13 +1,15 @@
 import { EventCard } from "@/components/composed/event-card";
+import Image from "next/image"; // Importado para uso em Categories
 
 const Events = () => {
+   // Array de objetos contendo nome e caminho da imagem
    const EventCategories = [
-      "Alagamentos",
-      "Deslizamentos",
-      "Enchentes",
-      "Incêndios",
-      "Secas",
-      "Outros",
+      { name: "Alagamentos", imagePath: "/assets/alagamentos.png" }, // Mude para .png ou .svg conforme o formato que você salvou
+      { name: "Deslizamentos", imagePath: "/assets/deslizamentos.png" },
+      { name: "Enchentes", imagePath: "/assets/enchentes.png" },
+      { name: "Incêndios", imagePath: "/assets/incendios.png" },
+      { name: "Secas", imagePath: "/assets/secas.png" },
+      { name: "Outros", imagePath: "/assets/outros.png" },
    ];
 
    return (
@@ -18,7 +20,12 @@ const Events = () => {
          </p>
          <div className="d-flex justify-content-around">
             {EventCategories.map((category) => (
-               <Categories key={category}>{category}</Categories>
+               // CORREÇÃO: Passando as propriedades individuais (name, imagePath)
+               <Categories
+                  key={category.name}
+                  name={category.name}
+                  imagePath={category.imagePath}
+               />
             ))}
          </div>
          <Cards />
@@ -26,11 +33,18 @@ const Events = () => {
    );
 };
 
-const Categories = ({ children }) => {
+// Componente Categories agora recebe 'name' e 'imagePath'
+const Categories = ({ name, imagePath }) => {
    return (
       <a href="#" className="event-category">
-         <div />
-         <span>{children}</span>
+         <Image
+            src={imagePath}
+            alt={`Ícone de ${name}`}
+            width={60}
+            height={60}
+            className="category-icon"
+         />
+         <span>{name}</span> {/* Renderiza o nome recebido */}
       </a>
    );
 };

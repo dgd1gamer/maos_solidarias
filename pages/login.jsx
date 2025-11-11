@@ -141,9 +141,8 @@ const Login = () => {
 
           {message.text && (
             <div
-              className={`alert ${
-                message.type === "success" ? "alert-success" : "alert-danger"
-              }`}
+              className={`alert ${message.type === "success" ? "alert-success" : "alert-danger"
+                }`}
               role="alert"
               style={{ marginTop: "1rem" }}
             >

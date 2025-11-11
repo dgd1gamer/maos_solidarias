@@ -7,7 +7,7 @@ import { Button } from "../primitives/button";
  */
 const menus = [
    {
-      name: "Início",
+      name: "Início", // CORRIGIDO: Retornando para "Início"
       href: "/",
    },
    {
